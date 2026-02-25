@@ -1,7 +1,7 @@
 use crate::sparse::dynamic_boundary::*;
 use vtkio::model::*;
 
-pub struct CoordSetVTKBuilder {
+pub struct CoordSetVTKBuilder1D {
     points: Vec<f32>,
     point_data: Vec<f32>,
     connectivity: Vec<u64>,
@@ -11,7 +11,7 @@ pub struct CoordSetVTKBuilder {
     offset: u64,
 }
 
-impl CoordSetVTKBuilder {
+impl CoordSetVTKBuilder1D {
     pub fn empty() -> Self {
         Self {
             points: Vec::new(),
@@ -24,34 +24,34 @@ impl CoordSetVTKBuilder {
         }
     }
 
-    pub fn add_coord_set(&mut self, coord_set: &CoordSet<2>, z: f32) {
+    pub fn add_coord_set(&mut self, coord_set: &CoordSet<1>, y: f32) {
         for coord in coord_set.coord_iter() {
             let x = coord[0] as f32;
-            let y = coord[1] as f32;
+            let z = 0.0;
 
             // A
             self.points.push(x);
             self.points.push(y);
             self.points.push(z);
-            self.point_data.push(z);
+            self.point_data.push(y);
 
             // B
             self.points.push(x + 1.0);
             self.points.push(y);
             self.points.push(z);
-            self.point_data.push(z);
+            self.point_data.push(y);
 
             // D
             self.points.push(x + 1.0);
             self.points.push(y + 1.0);
             self.points.push(z);
-            self.point_data.push(z);
+            self.point_data.push(y);
 
             // C
             self.points.push(x);
             self.points.push(y + 1.0);
             self.points.push(z);
-            self.point_data.push(z);
+            self.point_data.push(y);
 
             // Quad
             self.connectivity.push(self.base);

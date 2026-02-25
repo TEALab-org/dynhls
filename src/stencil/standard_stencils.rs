@@ -27,6 +27,27 @@ pub fn heat_2d(dt: f64, dx: f64, dy: f64, k_x: f64, k_y: f64) -> Stencil<2, 5> {
     )
 }
 
+pub fn simple_3pt_1d() -> Stencil<1, 3> {
+    Stencil::new(
+        [[-1], [0], [1]],
+        move |args: &[f64; 3]| {(1.0 / 3.0) * args.iter().sum::<f64>()},
+    )
+}
+
+pub fn simple_2pt_1d() -> Stencil<1, 2> {
+    Stencil::new(
+        [[-1], [0]],
+        move |args: &[f64; 2]| {(1.0 / 2.0) * args.iter().sum::<f64>()},
+    )
+}
+
+pub fn simple_1pt_1d() -> Stencil<1, 1> {
+    Stencil::new(
+        [[-1]],
+        move |args: &[f64; 1]| {args[0]},
+    )
+}
+
 pub fn simple_3pt_2d() -> Stencil<2, 3> {
     Stencil::new([[-1, -1], [-1, 0], [-1, 1]], move |args: &[f64; 3]| {
         let bottom = args[0];

@@ -1,5 +1,6 @@
 use clap::Parser;
 use nhls::sparse::dynamic_boundary::*;
+use nhls::util::*;
 use std::path::PathBuf;
 
 #[derive(Parser, Debug)]
@@ -11,21 +12,26 @@ struct Args {
 
     /// Input Domain
     #[arg(short, long)]
-    pub domain: PathBuf,
+    pub n: i32,
 }
 
 fn main() {
     let args = Args::parse();
-    println!("domain: {:?}", args.domain);
+    println!("n: {:?}", args.n);
     println!("output_dir: {:?}", args.output_dir); std::fs::create_dir_all(&args.output_dir).unwrap();
 
     //let stencil = nhls::standard_stencils::heat_2d(1.0, 1.0, 1.0, 0.2, 0.2);
     //let stencil = nhls::standard_stencils::simple_3pt_2d();
-    let stencil = nhls::standard_stencils::offset_4pt_2d();
+    let stencil = nhls::standard_stencils::simple_1pt_1d();
 
-    let mut region_vtk_builder = CoordSetVTKBuilder2D::empty();
+    let mut region_vtk_builder = CoordSetVTKBuilder1D::empty();
 
-    let domain = region_from_image(&args.domain);
+    //let domain = region_from_image(&args.domain);
+    let mut domain = CoordSet::empty();
+    for i in 0..args.n {
+        domain.add(vector![i]);
+    }
+
     region_vtk_builder.add_coord_set(&domain, 0.0);
     let mut dyn_bound = find_region_boundaries(&domain, &stencil);
     region_vtk_builder.add_coord_set(dyn_bound.inside(), 1.0);
@@ -35,7 +41,7 @@ fn main() {
     region_vtk_builder.write(&vtu_path);
 
     // create dilate loop
-    let mut dilate_vtk_builder = CoordSetVTKBuilder2D::empty();
+    let mut dilate_vtk_builder = CoordSetVTKBuilder1D::empty();
     dilate_vtk_builder.add_coord_set(dyn_bound.inside(), 1.0);
     let mut z = 2.0;
     while !dyn_bound.inside().is_empty() && z < 40.0 {
@@ -49,12 +55,12 @@ fn main() {
 
     // Set dilation
     let mut region = domain;
-    let mut dilate_set_builder = CoordSetVTKBuilder2D::empty();
-    let mut a_set_builder = CoordSetVTKBuilder2D::empty();
-    let mut b_set_builder = CoordSetVTKBuilder2D::empty(); 
+    let mut dilate_set_builder = CoordSetVTKBuilder1D::empty();
+    let mut a_set_builder = CoordSetVTKBuilder1D::empty();
+    let mut b_set_builder = CoordSetVTKBuilder1D::empty(); 
     dilate_set_builder.add_coord_set(&region, 0.0);
     let mut z = 1.0;
-    while !region.is_empty() && z < 20.0 {
+    while !region.is_empty() && z < args.n as f32 {
         println!("set iter: {}", z);
         let new_region = dilate_in_coord_set(&region, &stencil);
         let a = region.remove(&new_region);
