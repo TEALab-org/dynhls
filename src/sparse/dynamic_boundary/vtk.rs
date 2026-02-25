@@ -1,7 +1,7 @@
 use crate::sparse::dynamic_boundary::*;
 use vtkio::model::*;
 
-pub struct RegionVTKBuilder {
+pub struct CoordSetVTKBuilder {
     points: Vec<f32>,
     point_data: Vec<f32>,
     connectivity: Vec<u64>,
@@ -11,7 +11,7 @@ pub struct RegionVTKBuilder {
     offset: u64,
 }
 
-impl RegionVTKBuilder {
+impl CoordSetVTKBuilder {
     pub fn empty() -> Self {
         Self {
             points: Vec::new(),
@@ -24,7 +24,7 @@ impl RegionVTKBuilder {
         }
     }
 
-    pub fn add_boundary_set(&mut self, coord_set: &CoordSet<2>, z: f32) {
+    pub fn add_coord_set(&mut self, coord_set: &CoordSet<2>, z: f32) {
         for coord in coord_set.coord_iter() {
             let x = coord[0] as f32;
             let y = coord[1] as f32;

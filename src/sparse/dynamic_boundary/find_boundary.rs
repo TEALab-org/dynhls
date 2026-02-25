@@ -7,7 +7,7 @@ pub fn find_region_boundaries<
     StencilType: TVStencil<GRID_DIMENSION, NEIGHBORHOOD_SIZE>,
 >(
     region: &CoordSet<GRID_DIMENSION>,
-    stencil: StencilType
+    stencil: &StencilType
 ) -> OwnedDynamicBoundary<GRID_DIMENSION> {
     let mut inside = CoordSet::empty();
     let mut outside = CoordSet::empty();
