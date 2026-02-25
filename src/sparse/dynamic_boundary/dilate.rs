@@ -7,8 +7,8 @@ pub fn dilate_in<
     InputBoundType: DynamicBoundary<GRID_DIMENSION>,
     StencilType: TVStencil<GRID_DIMENSION, NEIGHBORHOOD_SIZE>,
 >(
-    boundary: InputBoundType,
-    stencil: StencilType,
+    boundary: &InputBoundType,
+    stencil: &StencilType,
 ) -> OwnedDynamicBoundary<GRID_DIMENSION> {
     // Old in becomes out, calc new in?
 

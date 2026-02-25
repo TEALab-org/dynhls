@@ -27,6 +27,15 @@ pub fn heat_2d(dt: f64, dx: f64, dy: f64, k_x: f64, k_y: f64) -> Stencil<2, 5> {
     )
 }
 
+pub fn simple_3pt_2d() -> Stencil<2, 3> {
+    Stencil::new([[-1, -1], [-1, 0], [-1, 1]], move |args: &[f64; 3]| {
+        let bottom = args[0];
+        let middle = args[1];
+        let top = args[2];
+        0.25 * (top + bottom) + 0.5 * middle
+    })
+}
+
 pub fn heat_3d(
     dt: f64,
     dx: f64,

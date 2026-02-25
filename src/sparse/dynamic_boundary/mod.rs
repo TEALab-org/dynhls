@@ -1,18 +1,18 @@
 mod borrow;
 mod coord_set;
 mod dilate;
-mod owned;
-mod vtk;
 mod find_boundary;
 mod image_loader;
+mod owned;
+mod vtk;
 
 pub use borrow::*;
 pub use coord_set::*;
 pub use dilate::*;
-pub use owned::*;
-pub use vtk::*;
 pub use find_boundary::*;
 pub use image_loader::*;
+pub use owned::*;
+pub use vtk::*;
 
 pub trait DynamicBoundary<const GRID_DIMENSION: usize> {
     fn inside(&self) -> &CoordSet<GRID_DIMENSION>;
