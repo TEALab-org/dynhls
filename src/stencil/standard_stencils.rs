@@ -36,6 +36,13 @@ pub fn simple_3pt_2d() -> Stencil<2, 3> {
     })
 }
 
+pub fn offset_4pt_2d() -> Stencil<2, 4> {
+    Stencil::new(
+        [[-1, -1], [-1, 0], [-1, 1], [0, 0]],
+        move |args: &[f64; 4]| {0.25 * args.iter().sum::<f64>()},
+    )
+}
+
 pub fn heat_3d(
     dt: f64,
     dx: f64,

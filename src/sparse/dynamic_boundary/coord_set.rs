@@ -29,10 +29,6 @@ impl<const GRID_DIMENSION: usize> CoordSet<GRID_DIMENSION> {
         self.cells.contains(coord)
     }
 
-    pub fn remove(&mut self, coord: &Coord<GRID_DIMENSION>) {
-        self.cells.remove(coord);
-    }
-
     pub fn coord_iter(&self) -> impl Iterator<Item = &Coord<GRID_DIMENSION>> {
         self.cells.iter()
     }
@@ -40,6 +36,16 @@ impl<const GRID_DIMENSION: usize> CoordSet<GRID_DIMENSION> {
     pub fn clear(&mut self) {
         self.cells.clear();
         self.aabb = AABB::empty();
+    }
+
+    pub fn remove(&self, other: &Self) -> Self {
+        let mut result = Self::empty();
+        for coord in self.coord_iter() {
+            if !other.contains(coord) {
+                result.add(*coord);
+            }
+        }
+        result
     }
 
     pub fn combine(&self, other: &Self) -> Self {
