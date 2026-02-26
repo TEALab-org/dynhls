@@ -10,6 +10,7 @@ mod dynamic_vtk2d;
 mod find_boundary;
 mod image_loader;
 mod owned_boundary_piece;
+mod enum_vtk;
 
 pub use borrow_boundary_piece::*;
 pub use boundary_piece::*;
@@ -23,3 +24,4 @@ pub use dynamic_vtk2d::*;
 pub use find_boundary::*;
 pub use image_loader::*;
 pub use owned_boundary_piece::*;
+pub use enum_vtk::*;

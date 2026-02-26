@@ -52,6 +52,15 @@ pub fn simple_3pt_2d() -> Stencil<2, 3> {
     })
 }
 
+pub fn vert_3pt_2d() -> Stencil<2, 3> {
+    Stencil::new([[0, -1], [0, 0], [0, 1]], move |args: &[f64; 3]| {
+        let bottom = args[0];
+        let middle = args[1];
+        let top = args[2];
+        0.25 * (top + bottom) + 0.5 * middle
+    })
+}
+
 pub fn offset_4pt_2d() -> Stencil<2, 4> {
     Stencil::new(
         [[-1, -1], [-1, 0], [-1, 1], [0, 0]],

@@ -1,9 +1,9 @@
 use crate::sparse::dynamic_boundary::*;
 use vtkio::model::*;
 
-pub struct CoordSetVTKBuilder2D {
+pub struct EnumVTKBuilder2D {
     points: Vec<f32>,
-    point_data: Vec<f32>,
+    point_data: Vec<u8>,
     connectivity: Vec<u64>,
     cell_types: Vec<CellType>,
     offsets: Vec<u64>,
@@ -11,7 +11,7 @@ pub struct CoordSetVTKBuilder2D {
     offset: u64,
 }
 
-impl CoordSetVTKBuilder2D {
+impl EnumVTKBuilder2D {
     pub fn empty() -> Self {
         Self {
             points: Vec::new(),
@@ -24,16 +24,7 @@ impl CoordSetVTKBuilder2D {
         }
     }
 
-    pub fn add_coord_set(&mut self, coord_set: &CoordSet<2>, z: f32) {
-        self.add_coord_set_value(coord_set, z, z);
-    }
-
-    pub fn add_coord_set_value(
-        &mut self,
-        coord_set: &CoordSet<2>,
-        z: f32,
-        v: f32,
-    ) {
+    pub fn add_coord_set(&mut self, coord_set: &CoordSet<2>, z: f32, v: u8) {
         for coord in coord_set.coord_iter() {
             let x = coord[0] as f32;
             let y = coord[1] as f32;
@@ -74,6 +65,13 @@ impl CoordSetVTKBuilder2D {
         }
     }
 
+    pub fn add_dynamic_boundy(&mut self, dynamic: &DynamicBoundary<2>, z: f32) {
+        self.add_coord_set(dynamic.dilation_front.inside(), z, 0);
+        self.add_coord_set(dynamic.dilation_front.outside(), z, 1);
+        self.add_coord_set(dynamic.static_front.inside(), z, 2);
+        self.add_coord_set(dynamic.static_front.outside(), z, 3);
+    }
+
     pub fn write<P: AsRef<std::path::Path>>(self, path: &P) {
         let model = Vtk {
             version: Version::XML { major: 1, minor: 0 },
@@ -96,7 +94,7 @@ impl CoordSetVTKBuilder2D {
                             num_comp: 1,
                             lookup_table: None,
                         },
-                        data: IOBuffer::F32(self.point_data),
+                        data: IOBuffer::U8(self.point_data),
                     })],
                     cell: vec![],
                 },
@@ -106,5 +104,3 @@ impl CoordSetVTKBuilder2D {
         model.export(path).unwrap();
     }
 }
-
-

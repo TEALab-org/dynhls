@@ -20,9 +20,10 @@ fn main() {
     println!("output_dir: {:?}", args.output_dir);
     std::fs::create_dir_all(&args.output_dir).unwrap();
 
-    //let stencil = nhls::standard_stencils::heat_2d(1.0, 1.0, 1.0, 0.2, 0.2);
+    let stencil = nhls::standard_stencils::heat_2d(1.0, 1.0, 1.0, 0.2, 0.2);
     //let stencil = nhls::standard_stencils::simple_3pt_2d();
-    let stencil = nhls::standard_stencils::offset_4pt_2d();
+    //let stencil = nhls::standard_stencils::offset_4pt_2d();
+    //let stencil = nhls::standard_stencils::vert_3pt_2d();
 
     let mut region_vtk_builder = CoordSetVTKBuilder2D::empty();
     let domain = region_from_image(&args.domain);
@@ -39,8 +40,10 @@ fn main() {
     static_builder.write(&static_path);
 
     let dynamic = find_dynamic_boundary(&domain, &stencil);
+    let mut enum_builder = EnumVTKBuilder2D::empty();
     let dynamic_path = args.output_dir.join("dynamic.vtu");
-    write_dynamic_boundary(&dynamic, &dynamic_path);
+    enum_builder.add_dynamic_boundy(&dynamic, 0.0);
+    enum_builder.write(&dynamic_path);
 
     // modified
     let mod_in = static_bounds.inside().remove(dyn_bound.inside());
