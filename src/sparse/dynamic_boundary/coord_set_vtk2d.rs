@@ -25,6 +25,15 @@ impl CoordSetVTKBuilder2D {
     }
 
     pub fn add_coord_set(&mut self, coord_set: &CoordSet<2>, z: f32) {
+        self.add_coord_set_value(coord_set, z, z);
+    }
+
+    pub fn add_coord_set_value(
+        &mut self,
+        coord_set: &CoordSet<2>,
+        z: f32,
+        v: f32,
+    ) {
         for coord in coord_set.coord_iter() {
             let x = coord[0] as f32;
             let y = coord[1] as f32;
@@ -33,25 +42,25 @@ impl CoordSetVTKBuilder2D {
             self.points.push(x);
             self.points.push(y);
             self.points.push(z);
-            self.point_data.push(z);
+            self.point_data.push(v);
 
             // B
             self.points.push(x + 1.0);
             self.points.push(y);
             self.points.push(z);
-            self.point_data.push(z);
+            self.point_data.push(v);
 
             // D
             self.points.push(x + 1.0);
             self.points.push(y + 1.0);
             self.points.push(z);
-            self.point_data.push(z);
+            self.point_data.push(v);
 
             // C
             self.points.push(x);
             self.points.push(y + 1.0);
             self.points.push(z);
-            self.point_data.push(z);
+            self.point_data.push(v);
 
             // Quad
             self.connectivity.push(self.base);

@@ -25,7 +25,6 @@ fn main() {
     let stencil = nhls::standard_stencils::offset_4pt_2d();
 
     let mut region_vtk_builder = CoordSetVTKBuilder2D::empty();
-
     let domain = region_from_image(&args.domain);
     let mut dyn_bound = find_region_boundaries(&domain, &stencil);
     region_vtk_builder.add_coord_set(dyn_bound.inside(), 0.0);
@@ -38,6 +37,10 @@ fn main() {
     static_builder.add_coord_set(static_bounds.outside(), -1.0);
     let static_path = args.output_dir.join("static_bound.vtu");
     static_builder.write(&static_path);
+
+    let dynamic = find_dynamic_boundary(&domain, &stencil);
+    let dynamic_path = args.output_dir.join("dynamic.vtu");
+    write_dynamic_boundary(&dynamic, &dynamic_path);
 
     // modified
     let mod_in = static_bounds.inside().remove(dyn_bound.inside());
