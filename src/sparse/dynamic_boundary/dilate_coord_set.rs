@@ -36,4 +36,3 @@ pub fn dilate_in_coord_set<
 
     result
 }
-

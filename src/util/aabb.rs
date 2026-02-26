@@ -171,10 +171,8 @@ impl<const DIMENSION: usize> AABB<DIMENSION> {
         true
     }
 
-    // TODO: file bug for this clippy issue
     /// Return iterator over contained coords
     /// in linear ordering.
-    #[allow(clippy::needless_lifetimes)]
     pub fn coord_iter<'a>(
         &'a self,
     ) -> impl Iterator<Item = Coord<DIMENSION>> + use<'a, DIMENSION> {

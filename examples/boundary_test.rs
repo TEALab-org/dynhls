@@ -17,7 +17,8 @@ struct Args {
 fn main() {
     let args = Args::parse();
     println!("domain: {:?}", args.domain);
-    println!("output_dir: {:?}", args.output_dir); std::fs::create_dir_all(&args.output_dir).unwrap();
+    println!("output_dir: {:?}", args.output_dir);
+    std::fs::create_dir_all(&args.output_dir).unwrap();
 
     //let stencil = nhls::standard_stencils::heat_2d(1.0, 1.0, 1.0, 0.2, 0.2);
     //let stencil = nhls::standard_stencils::simple_3pt_2d();
@@ -26,12 +27,28 @@ fn main() {
     let mut region_vtk_builder = CoordSetVTKBuilder2D::empty();
 
     let domain = region_from_image(&args.domain);
-    region_vtk_builder.add_coord_set(&domain, 0.0);
     let mut dyn_bound = find_region_boundaries(&domain, &stencil);
-    region_vtk_builder.add_coord_set(dyn_bound.inside(), 1.0);
+    region_vtk_builder.add_coord_set(dyn_bound.inside(), 0.0);
     region_vtk_builder.add_coord_set(dyn_bound.outside(), -1.0);
 
-    let vtu_path = args.output_dir.join("region.vtu");
+    let mut static_builder = CoordSetVTKBuilder2D::empty();
+    let static_bounds = find_region_boundaries_static_rad(&domain, &stencil);
+    static_builder.add_coord_set(&domain, 0.0);
+    static_builder.add_coord_set(static_bounds.inside(), 1.0);
+    static_builder.add_coord_set(static_bounds.outside(), -1.0);
+    let static_path = args.output_dir.join("static_bound.vtu");
+    static_builder.write(&static_path);
+
+    // modified
+    let mod_in = static_bounds.inside().remove(dyn_bound.inside());
+    let mod_out = static_bounds.outside().remove(dyn_bound.outside());
+    let mut mod_builder = CoordSetVTKBuilder2D::empty();
+    mod_builder.add_coord_set(&mod_in, 0.0);
+    mod_builder.add_coord_set(&mod_out, -1.0);
+    let mod_path = args.output_dir.join("mod_bound.vtu");
+    mod_builder.write(&mod_path);
+
+    let vtu_path = args.output_dir.join("dyn_bound.vtu");
     region_vtk_builder.write(&vtu_path);
 
     // create dilate loop
@@ -51,7 +68,7 @@ fn main() {
     let mut region = domain;
     let mut dilate_set_builder = CoordSetVTKBuilder2D::empty();
     let mut a_set_builder = CoordSetVTKBuilder2D::empty();
-    let mut b_set_builder = CoordSetVTKBuilder2D::empty(); 
+    let mut b_set_builder = CoordSetVTKBuilder2D::empty();
     dilate_set_builder.add_coord_set(&region, 0.0);
     let mut z = 1.0;
     while !region.is_empty() && z < 20.0 {

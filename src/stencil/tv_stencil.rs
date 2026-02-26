@@ -6,10 +6,20 @@ pub trait TVStencil<const GRID_DIMENSION: usize, const NEIGHBORHOOD_SIZE: usize>
 {
     fn weights(&self, global_time: usize) -> Values<NEIGHBORHOOD_SIZE>;
 
+    /// Offsets for argument weights.
+    /// Specifies Region-of-dependence
     fn offsets(&self) -> &[Coord<GRID_DIMENSION>; NEIGHBORHOOD_SIZE];
 
+    /// Offsets for region of influence,
+    /// negated result of offsets.
     fn roi_offsets(&self) -> impl Iterator<Item = Coord<GRID_DIMENSION>> {
         self.offsets().iter().map(|&c| -c)
+    }
+
+    /// Max offset distance on any axis
+    #[track_caller]
+    fn radius(&self) -> i32 {
+        self.offsets().iter().map(|&c| c.max()).max().unwrap()
     }
 
     fn slopes(&self) -> Bounds<GRID_DIMENSION> {

@@ -18,11 +18,12 @@ struct Args {
 fn main() {
     let args = Args::parse();
     println!("n: {:?}", args.n);
-    println!("output_dir: {:?}", args.output_dir); std::fs::create_dir_all(&args.output_dir).unwrap();
+    println!("output_dir: {:?}", args.output_dir);
+    std::fs::create_dir_all(&args.output_dir).unwrap();
 
     //let stencil = nhls::standard_stencils::heat_2d(1.0, 1.0, 1.0, 0.2, 0.2);
     //let stencil = nhls::standard_stencils::simple_3pt_2d();
-    let stencil = nhls::standard_stencils::simple_1pt_1d();
+    let stencil = nhls::standard_stencils::simple_3pt_1d();
 
     let mut region_vtk_builder = CoordSetVTKBuilder1D::empty();
 
@@ -57,7 +58,7 @@ fn main() {
     let mut region = domain;
     let mut dilate_set_builder = CoordSetVTKBuilder1D::empty();
     let mut a_set_builder = CoordSetVTKBuilder1D::empty();
-    let mut b_set_builder = CoordSetVTKBuilder1D::empty(); 
+    let mut b_set_builder = CoordSetVTKBuilder1D::empty();
     dilate_set_builder.add_coord_set(&region, 0.0);
     let mut z = 1.0;
     while !region.is_empty() && z < args.n as f32 {
