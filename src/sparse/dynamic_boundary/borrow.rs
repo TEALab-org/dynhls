@@ -1,13 +1,11 @@
 use crate::sparse::dynamic_boundary::*;
 
-pub struct BorrowDynamicBoundary<'a, const GRID_DIMENSION: usize> {
+pub struct BorrowBoundaryPiece<'a, const GRID_DIMENSION: usize> {
     inside: &'a CoordSet<GRID_DIMENSION>,
     outside: &'a CoordSet<GRID_DIMENSION>,
 }
 
-impl<'a, const GRID_DIMENSION: usize>
-    BorrowDynamicBoundary<'a, GRID_DIMENSION>
-{
+impl<'a, const GRID_DIMENSION: usize> BorrowBoundaryPiece<'a, GRID_DIMENSION> {
     pub fn new(
         inside: &'a CoordSet<GRID_DIMENSION>,
         outside: &'a CoordSet<GRID_DIMENSION>,
@@ -16,8 +14,8 @@ impl<'a, const GRID_DIMENSION: usize>
     }
 }
 
-impl<'a, const GRID_DIMENSION: usize> DynamicBoundary<GRID_DIMENSION>
-    for BorrowDynamicBoundary<'a, GRID_DIMENSION>
+impl<'a, const GRID_DIMENSION: usize> BoundaryPiece<GRID_DIMENSION>
+    for BorrowBoundaryPiece<'a, GRID_DIMENSION>
 {
     fn inside(&self) -> &CoordSet<GRID_DIMENSION> {
         self.inside
@@ -27,7 +25,7 @@ impl<'a, const GRID_DIMENSION: usize> DynamicBoundary<GRID_DIMENSION>
         self.outside
     }
 
-    fn to_owned(self) -> OwnedDynamicBoundary<GRID_DIMENSION> {
-        OwnedDynamicBoundary::new(self.inside.clone(), self.outside.clone())
+    fn to_owned(self) -> OwnedBoundaryPiece<GRID_DIMENSION> {
+        OwnedBoundaryPiece::new(self.inside.clone(), self.outside.clone())
     }
 }

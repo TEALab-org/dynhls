@@ -4,12 +4,12 @@ use crate::stencil::*;
 pub fn dilate_in<
     const GRID_DIMENSION: usize,
     const NEIGHBORHOOD_SIZE: usize,
-    InputBoundType: DynamicBoundary<GRID_DIMENSION>,
+    InputBoundType: BoundaryPiece<GRID_DIMENSION>,
     StencilType: TVStencil<GRID_DIMENSION, NEIGHBORHOOD_SIZE>,
 >(
     boundary: &InputBoundType,
     stencil: &StencilType,
-) -> OwnedDynamicBoundary<GRID_DIMENSION> {
+) -> OwnedBoundaryPiece<GRID_DIMENSION> {
     // Old in becomes out, calc new in?
 
     let mut new_in = CoordSet::empty();
@@ -25,5 +25,5 @@ pub fn dilate_in<
         }
     }
 
-    OwnedDynamicBoundary::new(new_in, boundary.inside().clone())
+    OwnedBoundaryPiece::new(new_in, boundary.inside().clone())
 }

@@ -9,7 +9,7 @@ pub fn find_region_boundaries<
 >(
     region: &CoordSet<GRID_DIMENSION>,
     stencil: &StencilType,
-) -> OwnedDynamicBoundary<GRID_DIMENSION> {
+) -> OwnedBoundaryPiece<GRID_DIMENSION> {
     let mut inside = CoordSet::empty();
     let mut outside = CoordSet::empty();
 
@@ -31,7 +31,7 @@ pub fn find_region_boundaries<
         }
     }
 
-    OwnedDynamicBoundary::new(inside, outside)
+    OwnedBoundaryPiece::new(inside, outside)
 }
 
 pub fn find_region_boundaries_static_rad<
@@ -41,7 +41,7 @@ pub fn find_region_boundaries_static_rad<
 >(
     region: &CoordSet<GRID_DIMENSION>,
     stencil: &StencilType,
-) -> OwnedDynamicBoundary<GRID_DIMENSION> {
+) -> OwnedBoundaryPiece<GRID_DIMENSION> {
     let mut inside = CoordSet::empty();
     let mut outside = CoordSet::empty();
     let radius = stencil.radius();
@@ -66,5 +66,5 @@ pub fn find_region_boundaries_static_rad<
         }
     }
 
-    OwnedDynamicBoundary::new(inside, outside)
+    OwnedBoundaryPiece::new(inside, outside)
 }

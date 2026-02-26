@@ -18,8 +18,8 @@ pub use owned::*;
 pub use vtk1d::*;
 pub use vtk2d::*;
 
-pub trait DynamicBoundary<const GRID_DIMENSION: usize> {
+pub trait BoundaryPiece<const GRID_DIMENSION: usize> {
     fn inside(&self) -> &CoordSet<GRID_DIMENSION>;
     fn outside(&self) -> &CoordSet<GRID_DIMENSION>;
-    fn to_owned(self) -> OwnedDynamicBoundary<GRID_DIMENSION>;
+    fn to_owned(self) -> OwnedBoundaryPiece<GRID_DIMENSION>;
 }
