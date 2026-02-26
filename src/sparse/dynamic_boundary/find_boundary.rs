@@ -68,3 +68,23 @@ pub fn find_region_boundaries_static_rad<
 
     OwnedBoundaryPiece::new(inside, outside)
 }
+
+pub fn find_dynamic_boundary<
+    const GRID_DIMENSION: usize,
+    const NEIGHBORHOOD_SIZE: usize,
+    StencilType: TVStencil<GRID_DIMENSION, NEIGHBORHOOD_SIZE>,
+>(
+    region: &CoordSet<GRID_DIMENSION>,
+    stencil: &StencilType,
+) -> DynamicBoundary<GRID_DIMENSION> {
+    let dilation_front = find_region_boundaries(region, stencil);
+    let static_bound = find_region_boundaries_static_rad(region, stencil);
+    let static_front_in = static_bound.inside().remove(dilation_front.inside());
+    let static_front_out =
+        static_bound.outside().remove(dilation_front.outside());
+
+    DynamicBoundary::new(
+        dilation_front,
+        OwnedBoundaryPiece::new(static_front_in, static_front_out),
+    )
+}
