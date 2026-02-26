@@ -65,7 +65,11 @@ impl EnumVTKBuilder2D {
         }
     }
 
-    pub fn add_dynamic_boundy(&mut self, dynamic: &DynamicBoundary<2>, z: f32) {
+    pub fn add_dynamic_boundary(
+        &mut self,
+        dynamic: &DynamicBoundary<2>,
+        z: f32,
+    ) {
         self.add_coord_set(dynamic.dilation_front.inside(), z, 0);
         self.add_coord_set(dynamic.dilation_front.outside(), z, 1);
         self.add_coord_set(dynamic.static_front.inside(), z, 2);

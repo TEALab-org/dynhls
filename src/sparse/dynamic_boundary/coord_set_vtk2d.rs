@@ -106,5 +106,3 @@ impl CoordSetVTKBuilder2D {
         model.export(path).unwrap();
     }
 }
-
-
