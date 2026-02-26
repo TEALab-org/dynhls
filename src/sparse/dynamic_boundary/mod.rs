@@ -1,25 +1,21 @@
-mod borrow;
+mod borrow_boundary_piece;
+mod boundary_piece;
 mod coord_set;
 mod dilate;
 mod dilate_coord_set;
 mod find_boundary;
 mod image_loader;
-mod owned;
+mod owned_boundary_piece;
 mod vtk1d;
 mod vtk2d;
 
-pub use borrow::*;
+pub use borrow_boundary_piece::*;
+pub use boundary_piece::*;
 pub use coord_set::*;
 pub use dilate::*;
 pub use dilate_coord_set::*;
 pub use find_boundary::*;
 pub use image_loader::*;
-pub use owned::*;
+pub use owned_boundary_piece::*;
 pub use vtk1d::*;
 pub use vtk2d::*;
-
-pub trait BoundaryPiece<const GRID_DIMENSION: usize> {
-    fn inside(&self) -> &CoordSet<GRID_DIMENSION>;
-    fn outside(&self) -> &CoordSet<GRID_DIMENSION>;
-    fn to_owned(self) -> OwnedBoundaryPiece<GRID_DIMENSION>;
-}
