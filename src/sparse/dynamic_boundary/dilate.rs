@@ -40,6 +40,7 @@ pub fn dilate_dynamic_in<
 
     let mut new_in = CoordSet::empty();
 
+    let mut candidates = std::collections::HashSet::new();
     for coord in boundary.dilation_front.inside().coord_iter() {
         for offset in stencil.roi_offsets() {
             let n_coord = coord + offset;
@@ -47,8 +48,24 @@ pub fn dilate_dynamic_in<
                 && !boundary.dilation_front.outside().contains(&n_coord)
                 && !boundary.static_front.outside().contains(&n_coord)
             {
-                new_in.add(n_coord);
+                candidates.insert(n_coord);
             }
+        }
+    }
+
+    for coord in candidates {
+        let mut flag = true;
+        for offset in stencil.offsets() {
+            let n_coord = coord + offset;
+            if boundary.dilation_front.outside().contains(&n_coord)
+                || boundary.static_front.outside().contains(&n_coord)
+            {
+                flag = false;
+                break;
+            }
+        }
+        if flag {
+            new_in.add(coord)
         }
     }
 

@@ -25,26 +25,57 @@ fn main() {
     let stencil = nhls::standard_stencils::offset_4pt_2d();
     //let stencil = nhls::standard_stencils::vert_3pt_2d();
 
-    let domain = region_from_image(&args.domain);
-    let mut domain_builder = EnumVTKBuilder2D::empty();
-    domain_builder.add_coord_set(&domain, -1.0, 5);
-    let domain_path = args.output_dir.join("domain.vtu");
-    domain_builder.write(&domain_path);
+    //let domain = region_from_image(&args.domain);
 
-    let mut dynamic = find_dynamic_boundary(&domain, &stencil);
-    let mut enum_builder = EnumVTKBuilder2D::empty();
-    let dynamic_path = args.output_dir.join("dynamic.vtu");
-    enum_builder.add_dynamic_boundary(&dynamic, 0.0);
 
-    let mut z = 1.0;
-    while z < 11.0 && !dynamic.dilation_front.inside().is_empty() {
-        dynamic = dilate_dynamic_in(&dynamic, &stencil);
-        enum_builder.add_dynamic_boundary(&dynamic, z);
-        z += 1.0;
-        println!("iter: {}", z);
-    }
 
-    enum_builder.write(&dynamic_path);
+    /*
+        let mut domain_builder = EnumVTKBuilder2D::empty();
+        domain_builder.add_coord_set(&domain, -1.0, 5);
+        let domain_path = args.output_dir.join("domain.vtu");
+        domain_builder.write(&domain_path);
+
+        let mut dynamic = find_dynamic_boundary(&domain, &stencil);
+        {
+        let mut enum_builder = EnumVTKBuilder2D::empty();
+        let dynamic_path = args.output_dir.join("dynamic_000.vtu");
+        enum_builder.add_dynamic_boundary(&dynamic, 0.0);
+        enum_builder.write(&dynamic_path);
+        }
+
+        let mut z = 1;
+        while z < 8 && !dynamic.dilation_front.inside().is_empty() {
+            dynamic = dilate_dynamic_in(&dynamic, &stencil);
+            let mut enum_builder = EnumVTKBuilder2D::empty();
+            enum_builder.add_dynamic_boundary(&dynamic, z as f32);
+            let dynamic_path = args.output_dir.join(format!("dynamic_{:03}.vtu", z));
+            enum_builder.write(&dynamic_path);
+            z += 1;
+            println!("iter: {}", z);
+        }
+
+        let mut region = domain;
+        {
+        let mut dilate_set_builder = CoordSetVTKBuilder2D::empty();
+        dilate_set_builder.add_coord_set(&region, 0.0);
+        let dilate_path = args.output_dir.join("dilate_set_000.vtu");
+        dilate_set_builder.write(&dilate_path);
+        }
+
+        let mut z = 1;
+        while !region.is_empty() && z < 8 {
+            println!("set iter: {}", z);
+            let new_region = dilate_in_coord_set(&region, &stencil);
+            region = new_region;
+
+            let mut dilate_set_builder = CoordSetVTKBuilder2D::empty();
+            dilate_set_builder.add_coord_set(&region, z as f32);
+            let dilate_path = args.output_dir.join(format!("dilate_set_{:03}.vtu", z));
+            dilate_set_builder.write(&dilate_path);
+
+            z += 1;
+        }
+    */
     /*
         let mut region_vtk_builder = CoordSetVTKBuilder2D::empty();
         let mut dyn_bound = find_region_boundaries(&domain, &stencil);
