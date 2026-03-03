@@ -19,7 +19,7 @@ pub trait TVStencil<const GRID_DIMENSION: usize, const NEIGHBORHOOD_SIZE: usize>
     /// Max offset distance on any axis
     #[track_caller]
     fn radius(&self) -> i32 {
-        self.offsets().iter().map(|&c| c.max()).max().unwrap()
+        self.offsets().iter().map(|&c| c.abs().max()).max().unwrap()
     }
 
     fn slopes(&self) -> Bounds<GRID_DIMENSION> {

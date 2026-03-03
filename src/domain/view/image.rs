@@ -2,7 +2,9 @@ use crate::domain::*;
 use crate::util::*;
 use image::ImageReader;
 
-pub fn domain_from_image<P: AsRef<std::path::Path>>(path: &P) -> OwnedDomain<2> {
+pub fn domain_from_image<P: AsRef<std::path::Path>>(
+    path: &P,
+) -> OwnedDomain<2> {
     let image = ImageReader::open(path)
         .unwrap()
         .decode()

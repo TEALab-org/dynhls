@@ -1,14 +1,14 @@
 mod chunk;
 mod debug_io;
+mod image;
 mod owned;
 mod slice;
-mod image;
 
 pub use chunk::*;
 pub use debug_io::*;
+pub use image::*;
 pub use owned::*;
 pub use slice::*;
-pub use image::*;
 
 use crate::util::*;
 use rayon::prelude::*;

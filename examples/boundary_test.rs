@@ -1,5 +1,7 @@
 use clap::Parser;
 use nhls::sparse::dynamic_boundary::*;
+use nhls::stencil::*;
+use nhls::util::*;
 use std::path::PathBuf;
 
 #[derive(Parser, Debug)]
@@ -14,6 +16,69 @@ struct Args {
     pub domain: PathBuf,
 }
 
+#[derive(Copy, Clone, Debug, PartialEq, Eq)]
+enum StencilFig {
+    Grid,
+    Roi,
+    Rod,
+    Present,
+}
+
+impl ToVTKU8 for StencilFig {
+    fn to_vtk_u8(&self) -> u8 {
+        match self {
+            StencilFig::Grid => 0,
+            StencilFig::Roi => 1,
+            StencilFig::Rod => 2,
+            StencilFig::Present => 3,
+        }
+    }
+}
+
+fn make_stencil_fig<
+    const NEIGHBORHOOD_SIZE: usize,
+    StencilType: TVStencil<2, NEIGHBORHOOD_SIZE>,
+>(
+    name: &str,
+    stencil: &StencilType,
+    output_dir: &PathBuf,
+) {
+    let r = stencil.radius() + 1;
+
+    let mut layer_off = CoordMap::empty();
+    let mut layer_rod = CoordMap::empty();
+    let mut layer_present = CoordMap::empty();
+    let mut layer_roi = CoordMap::empty();
+
+    for x in -r..=r {
+        for y in -r..=r {
+            layer_off.add(vector![x, y], StencilFig::Grid);
+        }
+    }
+
+    for offset in stencil.roi_offsets() {
+        layer_roi.add(offset, StencilFig::Roi);
+    }
+
+    for offset in stencil.offsets() {
+        layer_rod.add(*offset, StencilFig::Rod);
+    }
+
+    layer_present.add(Coord::zero(), StencilFig::Present);
+
+    let mut builder = CoordMapVTKBuilder2D::empty();
+    builder.add_coord_map(&layer_off, 0.0);
+    builder.add_coord_map(&layer_off, 1.0);
+    builder.add_coord_map(&layer_off, 2.0);
+    builder.add_coord_map(&layer_rod, 0.0);
+    builder.add_coord_map(&layer_present, 1.0);
+    builder.add_coord_map(&layer_roi, 2.0);
+    builder.set_point_data_name("stencil_fig".to_string());
+
+    let vtu_path = output_dir.join(format!("s_{}.vtu", name));
+    builder.write(&vtu_path);
+}
+
 fn main() {
     let args = Args::parse();
     println!("domain: {:?}", args.domain);
@@ -21,125 +86,131 @@ fn main() {
     std::fs::create_dir_all(&args.output_dir).unwrap();
 
     //let stencil = nhls::standard_stencils::heat_2d(1.0, 1.0, 1.0, 0.2, 0.2);
-    //let stencil = nhls::standard_stencils::simple_3pt_2d();
-    let stencil = nhls::standard_stencils::offset_4pt_2d();
+    let stencil = nhls::standard_stencils::simple_3pt_2d();
+    //let stencil = nhls::standard_stencils::offset_4pt_2d();
     //let stencil = nhls::standard_stencils::vert_3pt_2d();
 
-    //let domain = region_from_image(&args.domain);
+    let domain = region_from_image(&args.domain);
 
+    make_stencil_fig("stenc", &stencil, &args.output_dir);
 
+    let mut domain_builder = EnumVTKBuilder2D::empty();
+    domain_builder.add_coord_set(&domain, -1.0, 5);
+    let domain_path = args.output_dir.join("domain.vtu");
+    domain_builder.write(&domain_path);
 
-    /*
-        let mut domain_builder = EnumVTKBuilder2D::empty();
-        domain_builder.add_coord_set(&domain, -1.0, 5);
-        let domain_path = args.output_dir.join("domain.vtu");
-        domain_builder.write(&domain_path);
-
-        let mut dynamic = find_dynamic_boundary(&domain, &stencil);
-        {
+    let mut dy_builder = EnumVTKBuilder2D::empty();
+    dy_builder.set_point_data_name("dynamic_boundary".to_string());
+    let mut dynamic = find_dynamic_boundary(&domain, &stencil);
+    {
         let mut enum_builder = EnumVTKBuilder2D::empty();
+        enum_builder.set_point_data_name("dynamic_boundary".to_string());
         let dynamic_path = args.output_dir.join("dynamic_000.vtu");
         enum_builder.add_dynamic_boundary(&dynamic, 0.0);
+        dy_builder.add_dynamic_boundary(&dynamic, 0.0);
+
         enum_builder.write(&dynamic_path);
-        }
+    }
 
-        let mut z = 1;
-        while z < 8 && !dynamic.dilation_front.inside().is_empty() {
-            dynamic = dilate_dynamic_in(&dynamic, &stencil);
-            let mut enum_builder = EnumVTKBuilder2D::empty();
-            enum_builder.add_dynamic_boundary(&dynamic, z as f32);
-            let dynamic_path = args.output_dir.join(format!("dynamic_{:03}.vtu", z));
-            enum_builder.write(&dynamic_path);
-            z += 1;
-            println!("iter: {}", z);
-        }
+    let mut z = 1;
+    while z < 16 && !dynamic.dilation_front.inside().is_empty() {
+        dynamic = dilate_dynamic_in(&dynamic, &stencil);
+        let mut enum_builder = EnumVTKBuilder2D::empty();
+        enum_builder.set_point_data_name("dynamic_boundary".to_string());
+        enum_builder.add_dynamic_boundary(&dynamic, z as f32);
+        dy_builder.add_dynamic_boundary(&dynamic, z as f32);
 
-        let mut region = domain;
-        {
+        let dynamic_path =
+            args.output_dir.join(format!("dynamic_{:03}.vtu", z));
+        enum_builder.write(&dynamic_path);
+        z += 1;
+        println!("iter: {}", z);
+    }
+    let dy_path = args.output_dir.join(format!("dy_bound_all.vtu"));
+    dy_builder.write(&dy_path);
+
+    let mut region = domain.clone();
+    {
         let mut dilate_set_builder = CoordSetVTKBuilder2D::empty();
         dilate_set_builder.add_coord_set(&region, 0.0);
         let dilate_path = args.output_dir.join("dilate_set_000.vtu");
         dilate_set_builder.write(&dilate_path);
-        }
+    }
 
-        let mut z = 1;
-        while !region.is_empty() && z < 8 {
-            println!("set iter: {}", z);
-            let new_region = dilate_in_coord_set(&region, &stencil);
-            region = new_region;
+    let mut z = 1;
+    while !region.is_empty() && z < 8 {
+        println!("set iter: {}", z);
+        let new_region = dilate_in_coord_set(&region, &stencil);
+        region = new_region;
 
-            let mut dilate_set_builder = CoordSetVTKBuilder2D::empty();
-            dilate_set_builder.add_coord_set(&region, z as f32);
-            let dilate_path = args.output_dir.join(format!("dilate_set_{:03}.vtu", z));
-            dilate_set_builder.write(&dilate_path);
-
-            z += 1;
-        }
-    */
-    /*
-        let mut region_vtk_builder = CoordSetVTKBuilder2D::empty();
-        let mut dyn_bound = find_region_boundaries(&domain, &stencil);
-        region_vtk_builder.add_coord_set(dyn_bound.inside(), 0.0);
-        region_vtk_builder.add_coord_set(dyn_bound.outside(), -1.0);
-
-        let mut static_builder = CoordSetVTKBuilder2D::empty();
-        let static_bounds = find_region_boundaries_static_rad(&domain, &stencil);
-        static_builder.add_coord_set(&domain, 0.0);
-        static_builder.add_coord_set(static_bounds.inside(), 1.0);
-        static_builder.add_coord_set(static_bounds.outside(), -1.0);
-        let static_path = args.output_dir.join("static_bound.vtu");
-        static_builder.write(&static_path);
-
-
-
-        // modified
-        let mod_in = static_bounds.inside().remove(dyn_bound.inside());
-        let mod_out = static_bounds.outside().remove(dyn_bound.outside());
-        let mut mod_builder = CoordSetVTKBuilder2D::empty();
-        mod_builder.add_coord_set(&mod_in, 0.0);
-        mod_builder.add_coord_set(&mod_out, -1.0);
-        let mod_path = args.output_dir.join("mod_bound.vtu");
-        mod_builder.write(&mod_path);
-
-        let vtu_path = args.output_dir.join("dyn_bound.vtu");
-        region_vtk_builder.write(&vtu_path);
-
-        // create dilate loop
-        let mut dilate_vtk_builder = CoordSetVTKBuilder2D::empty();
-        dilate_vtk_builder.add_coord_set(dyn_bound.inside(), 1.0);
-        let mut z = 2.0;
-        while !dyn_bound.inside().is_empty() && z < 40.0 {
-            println!("iter: {}", z);
-            dyn_bound = dilate_in(&dyn_bound, &stencil);
-            dilate_vtk_builder.add_coord_set(dyn_bound.inside(), z);
-            z += 1.0;
-        }
-        let dilate_vtu_path = args.output_dir.join("dilate.vtu");
-        dilate_vtk_builder.write(&dilate_vtu_path);
-
-        // Set dilation
-        let mut region = domain;
         let mut dilate_set_builder = CoordSetVTKBuilder2D::empty();
-        let mut a_set_builder = CoordSetVTKBuilder2D::empty();
-        let mut b_set_builder = CoordSetVTKBuilder2D::empty();
-        dilate_set_builder.add_coord_set(&region, 0.0);
-        let mut z = 1.0;
-        while !region.is_empty() && z < 20.0 {
-            println!("set iter: {}", z);
-            let new_region = dilate_in_coord_set(&region, &stencil);
-            let a = region.remove(&new_region);
-            a_set_builder.add_coord_set(&a, z);
-            let b = new_region.remove(&region);
-            b_set_builder.add_coord_set(&b, z);
-            region = new_region;
-            dilate_set_builder.add_coord_set(&region, z);
-            z += 1.0;
-        }
-        let dilate_set_vtu_path = args.output_dir.join("dilate_set.vtu");
-        dilate_set_builder.write(&dilate_set_vtu_path);
-        let a_vtu_path = args.output_dir.join("a_set.vtu");
-        let b_vtu_path = args.output_dir.join("b_set.vtu");
-        a_set_builder.write(&a_vtu_path);
-        b_set_builder.write(&b_vtu_path);
-    */
+        dilate_set_builder.add_coord_set(&region, z as f32);
+        let dilate_path =
+            args.output_dir.join(format!("dilate_set_{:03}.vtu", z));
+        dilate_set_builder.write(&dilate_path);
+
+        z += 1;
+    }
+    let mut region_vtk_builder = CoordSetVTKBuilder2D::empty();
+    let mut dyn_bound = find_region_boundaries(&domain, &stencil);
+    region_vtk_builder.add_coord_set(dyn_bound.inside(), 0.0);
+    region_vtk_builder.add_coord_set(dyn_bound.outside(), -1.0);
+
+    let mut static_builder = CoordSetVTKBuilder2D::empty();
+    let static_bounds = find_region_boundaries_static_rad(&domain, &stencil);
+    static_builder.add_coord_set(&domain, 0.0);
+    static_builder.add_coord_set(static_bounds.inside(), 1.0);
+    static_builder.add_coord_set(static_bounds.outside(), -1.0);
+    let static_path = args.output_dir.join("static_bound.vtu");
+    static_builder.write(&static_path);
+
+    // modified
+    let mod_in = static_bounds.inside().remove(dyn_bound.inside());
+    let mod_out = static_bounds.outside().remove(dyn_bound.outside());
+    let mut mod_builder = CoordSetVTKBuilder2D::empty();
+    mod_builder.add_coord_set(&mod_in, 0.0);
+    mod_builder.add_coord_set(&mod_out, -1.0);
+    let mod_path = args.output_dir.join("mod_bound.vtu");
+    mod_builder.write(&mod_path);
+
+    let vtu_path = args.output_dir.join("dyn_bound.vtu");
+    region_vtk_builder.write(&vtu_path);
+
+    // create dilate loop
+    let mut dilate_vtk_builder = CoordSetVTKBuilder2D::empty();
+    dilate_vtk_builder.add_coord_set(dyn_bound.inside(), 1.0);
+    let mut z = 2.0;
+    while !dyn_bound.inside().is_empty() && z < 40.0 {
+        println!("iter: {}", z);
+        dyn_bound = dilate_in(&dyn_bound, &stencil);
+        dilate_vtk_builder.add_coord_set(dyn_bound.inside(), z);
+        z += 1.0;
+    }
+    let dilate_vtu_path = args.output_dir.join("dilate.vtu");
+    dilate_vtk_builder.write(&dilate_vtu_path);
+
+    // Set dilation
+    let mut region = domain;
+    let mut dilate_set_builder = CoordSetVTKBuilder2D::empty();
+    let mut a_set_builder = CoordSetVTKBuilder2D::empty();
+    let mut b_set_builder = CoordSetVTKBuilder2D::empty();
+    dilate_set_builder.add_coord_set(&region, 0.0);
+    let mut z = 1.0;
+    while !region.is_empty() && z < 20.0 {
+        println!("set iter: {}", z);
+        let new_region = dilate_in_coord_set(&region, &stencil);
+        let a = region.remove(&new_region);
+        a_set_builder.add_coord_set(&a, z);
+        let b = new_region.remove(&region);
+        b_set_builder.add_coord_set(&b, z);
+        region = new_region;
+        dilate_set_builder.add_coord_set(&region, z);
+        z += 1.0;
+    }
+    let dilate_set_vtu_path = args.output_dir.join("dilate_set.vtu");
+    dilate_set_builder.write(&dilate_set_vtu_path);
+    let a_vtu_path = args.output_dir.join("a_set.vtu");
+    let b_vtu_path = args.output_dir.join("b_set.vtu");
+    a_set_builder.write(&a_vtu_path);
+    b_set_builder.write(&b_vtu_path);
 }

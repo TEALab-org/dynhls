@@ -8,7 +8,9 @@ pub struct CoordMap<const GRID_DIMENSION: usize, DataType: Clone> {
     aabb: AABB<GRID_DIMENSION>,
 }
 
-impl<const GRID_DIMENSION: usize, DataType: Clone> CoordMap<GRID_DIMENSION, DataType> {
+impl<const GRID_DIMENSION: usize, DataType: Clone>
+    CoordMap<GRID_DIMENSION, DataType>
+{
     pub fn empty() -> Self {
         Self {
             cells: HashMap::new(),
@@ -29,7 +31,9 @@ impl<const GRID_DIMENSION: usize, DataType: Clone> CoordMap<GRID_DIMENSION, Data
         self.cells.contains_key(coord)
     }
 
-    pub fn coord_iter(&self) -> impl Iterator<Item = (&Coord<GRID_DIMENSION>, &DataType)> {
+    pub fn coord_iter(
+        &self,
+    ) -> impl Iterator<Item = (&Coord<GRID_DIMENSION>, &DataType)> {
         self.cells.iter()
     }
 

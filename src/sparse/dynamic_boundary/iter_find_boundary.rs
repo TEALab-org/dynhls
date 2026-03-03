@@ -135,5 +135,5 @@ impl Driver {
         self.explorer.step(&mut self.evaluator);
         self.step += 1;
         self.write();
-   }
+    }
 }

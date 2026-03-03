@@ -45,6 +45,7 @@ pub fn find_region_boundaries_static_rad<
     let mut inside = CoordSet::empty();
     let mut outside = CoordSet::empty();
     let radius = stencil.radius();
+    println!("rad: {}", radius);
     let radius_coord = Coord::from_element(radius);
     let static_offsets = AABB::from_mm(-radius_coord, radius_coord);
 

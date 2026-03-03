@@ -1,7 +1,8 @@
 use crate::sparse::dynamic_boundary::*;
 use vtkio::model::*;
 
-pub struct EnumVTKBuilder2D {
+pub struct CoordMapVTKBuilder1D {
+    point_data_name: String,
     points: Vec<f32>,
     point_data: Vec<u8>,
     connectivity: Vec<u64>,
@@ -11,9 +12,10 @@ pub struct EnumVTKBuilder2D {
     offset: u64,
 }
 
-impl EnumVTKBuilder2D {
+impl CoordMapVTKBuilder1D {
     pub fn empty() -> Self {
         Self {
+            point_data_name: "point_data".to_string(),
             points: Vec::new(),
             point_data: Vec::new(),
             connectivity: Vec::new(),
@@ -24,10 +26,15 @@ impl EnumVTKBuilder2D {
         }
     }
 
-    pub fn add_coord_set(&mut self, coord_set: &CoordSet<2>, z: f32, v: u8) {
-        for coord in coord_set.coord_iter() {
+    pub fn add_coord_map<DataType: Clone + ToVTKU8>(
+        &mut self,
+        coord_map: &CoordMap<1, DataType>,
+        y: f32,
+    ) {
+        for (coord, data) in coord_map.coord_iter() {
             let x = coord[0] as f32;
-            let y = coord[1] as f32;
+            let z = 0.0;
+            let v = data.to_vtk_u8();
 
             // A
             self.points.push(x);
@@ -65,15 +72,8 @@ impl EnumVTKBuilder2D {
         }
     }
 
-    pub fn add_dynamic_boundary(
-        &mut self,
-        dynamic: &DynamicBoundary<2>,
-        z: f32,
-    ) {
-        self.add_coord_set(dynamic.dilation_front.inside(), z, 0);
-        self.add_coord_set(dynamic.dilation_front.outside(), z, 1);
-        self.add_coord_set(dynamic.static_front.inside(), z, 2);
-        self.add_coord_set(dynamic.static_front.outside(), z, 3);
+    pub fn set_point_data_name(&mut self, name: String) {
+        self.point_data_name = name;
     }
 
     pub fn write<P: AsRef<std::path::Path>>(self, path: &P) {
@@ -93,7 +93,7 @@ impl EnumVTKBuilder2D {
                 },
                 data: Attributes {
                     point: vec![Attribute::DataArray(DataArrayBase {
-                        name: String::from("point_data"),
+                        name: self.point_data_name,
                         elem: ElementType::Scalars {
                             num_comp: 1,
                             lookup_table: None,
