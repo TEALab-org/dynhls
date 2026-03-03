@@ -1,5 +1,7 @@
 mod borrow_boundary_piece;
 mod boundary_piece;
+mod coord_map;
+mod coord_map_vtk2d;
 mod coord_set;
 mod coord_set_vtk1d;
 mod coord_set_vtk2d;
@@ -10,10 +12,13 @@ mod dynamic_vtk2d;
 mod enum_vtk;
 mod find_boundary;
 mod image_loader;
+mod iter_find_boundary;
 mod owned_boundary_piece;
 
 pub use borrow_boundary_piece::*;
 pub use boundary_piece::*;
+pub use coord_map::*;
+pub use coord_map_vtk2d::*;
 pub use coord_set::*;
 pub use coord_set_vtk1d::*;
 pub use coord_set_vtk2d::*;
@@ -24,4 +29,5 @@ pub use dynamic_vtk2d::*;
 pub use enum_vtk::*;
 pub use find_boundary::*;
 pub use image_loader::*;
+pub use iter_find_boundary::*;
 pub use owned_boundary_piece::*;
