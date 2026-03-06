@@ -14,7 +14,6 @@ mod enum_vtk1d;
 mod enum_vtk2d;
 mod find_boundary;
 mod image_loader;
-mod iter_find_boundary;
 mod owned_boundary_piece;
 
 pub use borrow_boundary_piece::*;
@@ -33,5 +32,4 @@ pub use enum_vtk1d::*;
 pub use enum_vtk2d::*;
 pub use find_boundary::*;
 pub use image_loader::*;
-pub use iter_find_boundary::*;
 pub use owned_boundary_piece::*;
