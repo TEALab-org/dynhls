@@ -106,3 +106,13 @@ impl CoordSetVTKBuilder2D {
         model.export(path).unwrap();
     }
 }
+
+pub fn write_coord_set<P: AsRef<std::path::Path>>(
+    set: &CoordSet<2>,
+    z: f32,
+    path: &P,
+) {
+    let mut builder = CoordSetVTKBuilder2D::empty();
+    builder.add_coord_set(set, z);
+    builder.write(path);
+}

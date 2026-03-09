@@ -279,6 +279,18 @@ impl<const DIMENSION: usize> AABB<DIMENSION> {
         }
         false
     }
+
+    /// Create a 1-ball around the origin
+    pub fn one_ball_iter() -> impl Iterator<Item = Coord<DIMENSION>> {
+        let min = Coord::from_element(-1);
+        let max = Coord::from_element(1);
+        let ball = AABB {
+            bounds: Bounds::from_columns(&[min, max]),
+        };
+        (0..ball.buffer_size())
+            .map(move |i| ball.linear_to_coord(i))
+            .filter(|c| *c != Coord::<DIMENSION>::zero())
+    }
 }
 
 #[cfg(test)]
@@ -617,5 +629,26 @@ mod unit_tests {
         let b = AABB::new(matrix![-1, 3]);
         a.add_aabb(&b);
         assert_eq!(a.bounds, matrix![-1, 9]);
+    }
+
+    #[test]
+    fn one_ball_iter() {
+        let a: Vec<Coord<1>> = AABB::one_ball_iter().collect();
+        assert_eq!(a, vec![vector![-1], vector![1]]);
+
+        let b: Vec<Coord<2>> = AABB::one_ball_iter().collect();
+        assert_eq!(
+            b,
+            vec![
+                vector![-1, -1],
+                vector![-1, 0],
+                vector![-1, 1],
+                vector![0, -1],
+                vector![0, 1],
+                vector![1, -1],
+                vector![1, 0],
+                vector![1, 1],
+            ]
+        );
     }
 }
