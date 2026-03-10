@@ -95,7 +95,7 @@ fn write_explorer<'a, const N: usize, StencilType: TVStencil<2, N>>(
     write_coord_set(&explorer.new_inside, 1.0, &inside_path);
     write_coord_set(&explorer.new_outside, 1.0, &outside_path);
     write_coord_set(&explorer.new_explored, 1.0, &explored_path);
-    //write_coord_set(&explorer.front, 1.0, &front_path);
+    write_coord_set(&explorer.front, 1.0, &front_path);
 }
 
 fn main() {

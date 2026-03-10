@@ -15,7 +15,7 @@ pub struct Explorer<
     pub new_inside: CoordSet<GRID_DIMENSION>,
     pub new_outside: CoordSet<GRID_DIMENSION>,
     pub new_explored: CoordSet<GRID_DIMENSION>,
-    pub front: HashSet<Coord<GRID_DIMENSION>>,
+    pub front: CoordSet<GRID_DIMENSION>,
 }
 
 // So there's the evaluated region,
@@ -43,7 +43,7 @@ impl<
             new_inside: CoordSet::empty(),
             new_outside: CoordSet::empty(),
             new_explored: CoordSet::empty(),
-            front: HashSet::new(),
+            front: CoordSet::empty(),
         }
     }
 
@@ -111,7 +111,7 @@ impl<
                         && !self.new_inside.contains(&frontier_candidate)
                         && !self.new_outside.contains(&frontier_candidate)
                     {
-                        self.front.insert(frontier_candidate);
+                        self.front.add(frontier_candidate);
                     }
                 }
 
@@ -125,8 +125,8 @@ impl<
     }
 
     pub fn explore_frontier_candidate(&mut self) {
-        let frontier_candidate = *self.front.iter().next().unwrap();
-        self.front.remove(&frontier_candidate);
+        let frontier_candidate = *self.front.coord_iter().next().unwrap();
+        self.front.remove_coord(&frontier_candidate);
 
         // Check all stencil deps
         // three cases,
@@ -173,7 +173,7 @@ impl<
                     && !self.new_inside.contains(&new_candidate)
                     && !self.new_outside.contains(&new_candidate)
                 {
-                    self.front.insert(new_candidate);
+                    self.front.add(new_candidate);
                 }
             }
         } else {

@@ -48,6 +48,10 @@ impl<const GRID_DIMENSION: usize> CoordSet<GRID_DIMENSION> {
         result
     }
 
+    pub fn remove_coord(&mut self, coord: &Coord<GRID_DIMENSION>) {
+        self.cells.remove(coord);
+    }
+
     pub fn combine(&self, other: &Self) -> Self {
         let mut cells = self.cells.clone();
         cells.extend(other.cells.iter());
