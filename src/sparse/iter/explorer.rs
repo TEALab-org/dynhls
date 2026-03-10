@@ -54,6 +54,7 @@ impl<
         inside_coord: &Coord<GRID_DIMENSION>,
     ) {
         debug_assert!(self.inside.contains(inside_coord));
+        self.inside.add(*inside_coord, true);
         let mut explored_boundary_coords = CoordSet::empty();
         // All the stencil positions we could try
         // For a candidate stencil position to be valid
@@ -167,11 +168,12 @@ impl<
             for offset in AABB::one_ball_iter() {
                 let new_candidate = frontier_candidate + offset;
 
-                if !self.new_explored.contains(&new_candidate)
+                if new_candidate != frontier_candidate
+                    && !self.new_explored.contains(&new_candidate)
                     && !self.new_inside.contains(&new_candidate)
                     && !self.new_outside.contains(&new_candidate)
                 {
-                    self.front.insert(frontier_candidate);
+                    self.front.insert(new_candidate);
                 }
             }
         } else {
@@ -191,12 +193,15 @@ impl<
 
     pub fn step(&mut self) -> bool {
         if !self.front.is_empty() {
+            println!("Explore frontier");
             self.explore_frontier_candidate();
             return true;
         }
 
         if let Some(inside_coord) = self.find_candidate_inside() {
+            println!("Find Stencil position: {:?}", inside_coord);
             self.find_stencil_position(&inside_coord);
+            return true;
         }
 
         // Is there something in the frontier?
@@ -205,5 +210,15 @@ impl<
         // If none there then we're done
 
         false
+    }
+
+    pub fn report(&self) {
+        println!(
+            "|front|: {}, |n_inside|: {}, |n_outside|: {}, |n_expl|: {}",
+            self.front.len(),
+            self.new_inside.len(),
+            self.new_outside.len(),
+            self.new_explored.len()
+        );
     }
 }

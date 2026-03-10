@@ -121,12 +121,11 @@ fn main() {
     let mut explorer =
         Explorer::new(&stencil, init_boundary.inside, init_boundary.outside);
 
-    /*
     let mut step = 1;
-    for _ in 0..10 {
-        explorer.step();
+    while explorer.step() && step < 1000 {
+        println!("step: {}", step);
+        explorer.report();
         write_explorer(&args.output_dir, step, &explorer);
         step += 1;
     }
-    */
 }

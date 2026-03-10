@@ -55,4 +55,8 @@ impl<const GRID_DIMENSION: usize> CoordSet<GRID_DIMENSION> {
         aabb.add_aabb(&other.aabb);
         Self { cells, aabb }
     }
+
+    pub fn len(&self) -> usize {
+        self.cells.len()
+    }
 }
