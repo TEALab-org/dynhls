@@ -98,6 +98,28 @@ fn write_explorer<'a, const N: usize, StencilType: TVStencil<2, N>>(
     write_coord_set(&explorer.front, 1.0, &front_path);
 }
 
+fn test_explorer<
+    const GRID_DIMENSION: usize,
+    const NEIGHBORHOOD_SIZE: usize,
+    StencilType: TVStencil<GRID_DIMENSION, NEIGHBORHOOD_SIZE>,
+>(
+    domain: &CoordSet<GRID_DIMENSION>,
+    stencil: &StencilType,
+) {
+    let init_boundary = initial_oneball_boundary(&domain);
+    let fill_init_boundary = fill_boundary(&init_boundary);
+    assert_eq!(&fill_init_boundary, domain);
+    let explorer = Explorer::new(
+        stencil,
+        init_boundary.inside.clone(),
+        init_boundary.outside.clone(),
+    );
+    let explorer_result = explorer.result();
+    let fill_result = fill_boundary(&explorer_result);
+    let expected = dilate_in_coord_set(domain, stencil);
+    assert_eq!(fill_result, expected);
+}
+
 fn main() {
     let args = Args::parse();
     println!("domain: {:?}", args.domain);
@@ -105,27 +127,91 @@ fn main() {
     std::fs::create_dir_all(&args.output_dir).unwrap();
 
     //let stencil = nhls::standard_stencils::heat_2d(1.0, 1.0, 1.0, 0.2, 0.2);
-    let stencil = nhls::standard_stencils::simple_3pt_2d();
+    //let stencil = nhls::standard_stencils::simple_3pt_2d();
     //let stencil = nhls::standard_stencils::offset_4pt_2d();
     //let stencil = nhls::standard_stencils::vert_3pt_2d();
 
     let domain = region_from_image(&args.domain);
-    make_stencil_fig("stenc", &stencil, &args.output_dir);
+    test_explorer(&domain, &nhls::standard_stencils::heat_2d(1.0, 1.0, 1.0, 0.2, 0.2));
+    test_explorer(&domain, &nhls::standard_stencils::simple_3pt_2d());
+    test_explorer(&domain, &nhls::standard_stencils::vert_3pt_2d());
+    test_explorer(&domain, &nhls::standard_stencils::offset_4pt_2d());
 
+
+/*
+ *
+    println!("*** BEGIN TEST INIT / FILL ***");
     let init_boundary = initial_oneball_boundary(&domain);
-    let inside_path = args.output_dir.join("init_inside.vtu");
-    let outside_path = args.output_dir.join("init_outside.vtu");
-    write_coord_set(&init_boundary.inside, 0.0, &inside_path);
-    write_coord_set(&init_boundary.outside, 0.0, &outside_path);
+    let fill_init_boundary = fill_boundary(&init_boundary);
+    assert_eq!(fill_init_boundary, domain);
 
-    let mut explorer =
-        Explorer::new(&stencil, init_boundary.inside, init_boundary.outside);
+    println!("*** BEGIN EXPLORER SINGLE STEP ***");
+    let mut explorer = Explorer::new(
+        &stencil,
+        init_boundary.inside.clone(),
+        init_boundary.outside.clone(),
+    );
 
-    let mut step = 1;
-    while explorer.step() && step < 1000 {
-        println!("step: {}", step);
-        explorer.report();
-        write_explorer(&args.output_dir, step, &explorer);
-        step += 1;
+    println!("*** BEGIN FINAL FILL ***");
+    let explorer_result = explorer.result();
+
+    write_coord_set(
+        &explorer_result.inside,
+        0.0,
+        &args.output_dir.join("expl_inside.vtu"),
+    );
+
+    write_coord_set(
+        &explorer_result.outside,
+        0.0,
+        &args.output_dir.join("expl_outside.vtu"),
+    );
+
+    let mut builder = CoordSetVTKBuilder2D::empty();
+    let mut result = CoordSet::empty();
+    let mut new_points = explorer_result.inside.clone();
+    let mut next_points = CoordSet::empty();
+    let mut step = 0.0;
+    while !new_points.is_empty() && step < 20.1 {
+        builder.add_coord_set_value(&new_points, 0.0, step); 
+        step += 1.0;
+        for coord in new_points.coord_iter() {
+            result.add(*coord);
+            for offset in AABB::one_ball_iter() {
+                let n_coord = coord + offset;
+                if !explorer_result.outside.contains(&n_coord) 
+                && !result.contains(&n_coord) {
+                    next_points.add(n_coord);
+                }
+            }
+        }
+        
+        std::mem::swap(&mut new_points, &mut next_points);
+        next_points.clear();
+
+        println!("result: {}", result.len());
     }
+    builder.write(&args.output_dir.join("explr_fill.vtu"));
+*/
+
+    /*
+        make_stencil_fig("stenc", &stencil, &args.output_dir);
+
+        let init_boundary = initial_oneball_boundary(&domain);
+        let inside_path = args.output_dir.join("init_inside.vtu");
+        let outside_path = args.output_dir.join("init_outside.vtu");
+        write_coord_set(&init_boundary.inside, 0.0, &inside_path);
+        write_coord_set(&init_boundary.outside, 0.0, &outside_path);
+
+        let mut explorer =
+            Explorer::new(&stencil, init_boundary.inside, init_boundary.outside);
+
+        let mut step = 1;
+        while explorer.step() && step < 1000 {
+            println!("step: {}", step);
+            explorer.report();
+            write_explorer(&args.output_dir, step, &explorer);
+            step += 1;
+        }
+    */
 }

@@ -23,3 +23,31 @@ pub fn initial_oneball_boundary<const GRID_DIMENSION: usize>(
 
     OneBallBoundary { inside, outside }
 }
+
+pub fn fill_boundary<const GRID_DIMENSION: usize>(
+    boundary: &OneBallBoundary<GRID_DIMENSION>
+) -> CoordSet<GRID_DIMENSION> {
+    let mut result = CoordSet::empty();
+    let mut new_points = boundary.inside.clone();
+    let mut next_points = CoordSet::empty();
+
+    while !new_points.is_empty() {
+        for coord in new_points.coord_iter() {
+            result.add(*coord);
+            for offset in AABB::one_ball_iter() {
+                let n_coord = coord + offset;
+                if !boundary.outside.contains(&n_coord) 
+                && !result.contains(&n_coord) {
+                    next_points.add(n_coord);
+                }
+            }
+        }
+        
+        std::mem::swap(&mut new_points, &mut next_points);
+        next_points.clear();
+
+        println!("result: {}", result.len());
+    }
+
+    result
+}

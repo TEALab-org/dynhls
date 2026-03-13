@@ -2,7 +2,7 @@ use crate::util::*;
 
 use std::collections::HashSet;
 
-#[derive(Clone)]
+#[derive(Clone, PartialEq, Eq, Debug)]
 pub struct CoordSet<const GRID_DIMENSION: usize> {
     pub cells: HashSet<Coord<GRID_DIMENSION>>,
     aabb: AABB<GRID_DIMENSION>,

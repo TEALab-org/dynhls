@@ -7,3 +7,6 @@ mod find_boundaries;
 pub use explorer::*;
 pub use explorer_util::*;
 pub use find_boundaries::*;
+
+#[cfg(test)]
+mod explorer_tests;

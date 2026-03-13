@@ -1,4 +1,5 @@
 use crate::sparse::dynamic_boundary::*;
+use crate::sparse::iter::OneBallBoundary;
 use crate::stencil::*;
 use crate::util::*;
 use std::collections::HashSet;
@@ -210,6 +211,19 @@ impl<
         // If none there then we're done
 
         false
+    }
+
+    pub fn result(mut self) -> OneBallBoundary<GRID_DIMENSION> {
+        let mut step = 0;
+        while self.step() {
+            step += 1;
+        }
+        println!("Explorer steps: {}", step);
+
+        OneBallBoundary {
+            inside: self.new_inside,
+            outside: self.new_outside,
+        }
     }
 
     pub fn report(&self) {
