@@ -30,6 +30,7 @@ impl Image1D {
     }
 }
 
+/// Color gradient assumes values are in [0.0, 1.0]
 pub fn image2d<P: AsRef<std::path::Path>, DomainType: DomainView<2>>(
     domain: &DomainType,
     s: &P,
@@ -46,6 +47,37 @@ pub fn image2d<P: AsRef<std::path::Path>, DomainType: DomainView<2>>(
         let coord = domain.aabb().linear_to_coord(l as usize);
         let r = domain.view(&coord);
         let c = gradient.eval_continuous(r);
+        img.put_pixel(
+            coord[0] as u32,
+            coord[1] as u32,
+            image::Rgb(c.as_array()),
+        );
+    }
+    img.save(s).expect("Couldn't save image");
+}
+
+/// Color gradient covers values between min and max
+pub fn image2d_scaled<P: AsRef<std::path::Path>, DomainType: DomainView<2>>(
+    domain: &DomainType,
+    s: &P,
+    min: f64,
+    max: f64,
+) {
+    println!("Writing png: {:?}", s.as_ref());
+    let aabb = domain.aabb();
+    let exclusive_bounds = aabb.exclusive_bounds();
+    let gradient = colorous::TURBO;
+    let mut img = image::RgbImage::new(
+        exclusive_bounds[0] as u32,
+        exclusive_bounds[1] as u32,
+    );
+    debug_assert!(max > min);
+    let d = max - min;
+    for l in 0..exclusive_bounds[0] * exclusive_bounds[1] {
+        let coord = domain.aabb().linear_to_coord(l as usize);
+        let r = domain.view(&coord);
+        let scaled = (r - min) / d;
+        let c = gradient.eval_continuous(scaled);
         img.put_pixel(
             coord[0] as u32,
             coord[1] as u32,
